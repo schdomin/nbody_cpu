@@ -50,8 +50,23 @@ public:
 //ds operators
 public:
 
-    //ds indexing - ( ) is used instead of [ ] to mark the difference that this is not a "real" array - CAREFUL this allows manipulation of the data
+    //ds r/w indexing - ( ) is used instead of [ ] to mark the difference that this is not a "real" array - CAREFUL this allows manipulation of the data
     double& operator( )( const unsigned int& p_uIndex )
+    {
+        //ds map the index operator to the element
+        if     ( 0 == p_uIndex ){ return m_dElement0; }
+        else if( 1 == p_uIndex ){ return m_dElement1; }
+        else if( 2 == p_uIndex ){ return m_dElement2; }
+
+        //ds if an index greater 2 is required throw an exception
+        else
+        {
+            throw NBody::CCubicDomainException( "invalid index access" );
+        }
+    }
+
+    //ds readonly indexing - ( ) is used instead of [ ] to mark the difference that this is not a "real" array
+    const double operator( )( const unsigned int& p_uIndex ) const
     {
         //ds map the index operator to the element
         if     ( 0 == p_uIndex ){ return m_dElement0; }

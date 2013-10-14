@@ -6,6 +6,7 @@
 
 #include <random>    //ds normal distribution
 #include <iostream>
+#include <fstream>
 
 
 
@@ -23,7 +24,7 @@ public:
     CCubicDomain( const std::pair< double, double >& p_pairBoundaries,
                   const unsigned int& p_uNumberOfParticles ): m_arrParticles( 0 ),
                                                               m_pairBoundaries( p_pairBoundaries ),
-                                                              m_dBoundarySize( labs( m_pairBoundaries.first ) + labs( m_pairBoundaries.second ) ),
+                                                              m_dDomainSize( labs( m_pairBoundaries.first ) + labs( m_pairBoundaries.second ) ),
                                                               m_uNumberOfParticles( p_uNumberOfParticles )
     {
         //ds nothing to do
@@ -54,8 +55,11 @@ private:
 
     //ds domain properties
     const std::pair< double, double > m_pairBoundaries;
-    const double m_dBoundarySize;
+    const double m_dDomainSize;
     const unsigned int m_uNumberOfParticles;
+
+    //ds stream for offline data
+    std::string m_strParticleInformation;
 
 //ds accessors
 public:
@@ -93,7 +97,7 @@ public:
     void updateParticlesVelocityVerlet( const double& p_dTimeStep, const double& p_dMinimumDistance, const double& p_dPotentialDepth )
     {
         //ds allocate a temporary array to hold the accelerations
-        CVector *arrAccelerations = new CVector[m_uNumberOfParticles];
+        CVector *arrNewAccelerations = new CVector[m_uNumberOfParticles];
 
         //ds for each particle
         for( unsigned int u = 0; u < m_uNumberOfParticles; ++u )
@@ -107,29 +111,13 @@ public:
                 //ds if its not the same particle
                 if( u != v )
                 {
-                    //ds collect the force from the current particle and add it
-                    CVector tempForce= getLennardJonesForce( m_arrParticles[u], m_arrParticles[v], p_dMinimumDistance, p_dPotentialDepth );
-
-                    cTotalForce += tempForce;
-
-                    /*if( 10 < tempForce( 0 ) || 10 < tempForce( 1 ) || 10 < tempForce( 2 ) )
-                    {
-                        std::cout << "u: " << u << " v: " << v << std::endl;
-                        std::cout << "single force: \n" << tempForce << std::endl;
-
-                        std::cout << "particle 1: \n" << m_arrParticles[u].m_cPosition << std::endl;
-                        std::cout << "particle 2: \n" << m_arrParticles[v].m_cPosition << std::endl;
-                        std::cout << "particle 3: \n" << m_arrParticles[v-1].m_cPosition << std::endl;
-
-                        getchar( );
-                    }*/
+                    //ds collect the force from the current particle and add it (the function takes care of periodic boundary condition)
+                    cTotalForce += getLennardJonesForce( m_arrParticles[u], m_arrParticles[v], p_dMinimumDistance, p_dPotentialDepth );
                 }
             }
 
             //ds if we got the total force calculate the resulting acceleration and save it to our array
-            arrAccelerations[u] = cTotalForce/m_arrParticles[u].m_dMass;
-
-            //std::cout << arrAccelerations[u] << std::endl;
+            arrNewAccelerations[u] = cTotalForce/m_arrParticles[u].m_dMass;
         }
 
         //ds for each particle we have to calculate the effect of the acceleration now
@@ -138,42 +126,75 @@ public:
             //ds velocity-verlet for position
             m_arrParticles[u].m_cPosition = m_arrParticles[u].m_cPosition + p_dTimeStep*m_arrParticles[u].m_cVelocity + 1/2*pow( p_dTimeStep, 2 )*m_arrParticles[u].m_cAcceleration;
 
-            /*ds check if we have to shift the particle
+            //ds produce periodic boundary shifting - check each element: x,y,z
             for( unsigned int v = 0; v < 3; ++v )
             {
                 //ds check if we are below the boundary
-                if( m_pairBoundaries.first > m_arrParticles[u].m_cPosition( v ) )
+                while( m_pairBoundaries.first > m_arrParticles[u].m_cPosition( v ) )
                 {
-                    //std::cout << m_arrParticles[u].m_cPosition( v ) << "to 1" << std::endl;
-
                     //ds map the particle to the other boundary by shifting it up to the boundary
-                    m_arrParticles[u].m_cPosition( v ) = m_pairBoundaries.second;
+                    m_arrParticles[u].m_cPosition( v ) += m_dDomainSize;
                 }
 
                 //ds check if we are above the boundary
-                else if( m_pairBoundaries.second < m_arrParticles[u].m_cPosition ( v ) )
+                while( m_pairBoundaries.second < m_arrParticles[u].m_cPosition ( v ) )
                 {
-                    //std::cout << m_arrParticles[u].m_cPosition( v ) << "to -1" << std::endl;
-
                     //ds map the particle to the other boundary by shifting it back to the boundary
-                    m_arrParticles[u].m_cPosition( v ) = m_pairBoundaries.first;
+                    m_arrParticles[u].m_cPosition( v ) -= m_dDomainSize;
                 }
-            }*/
+            }
 
             //ds velocity-verlet for velocity
-            m_arrParticles[u].m_cVelocity = m_arrParticles[u].m_cVelocity + p_dTimeStep/2*( arrAccelerations[u] + m_arrParticles[u].m_cAcceleration );
+            m_arrParticles[u].m_cVelocity = m_arrParticles[u].m_cVelocity + p_dTimeStep/2*( arrNewAccelerations[u] + m_arrParticles[u].m_cAcceleration );
 
             //ds update the acceleration
-            m_arrParticles[u].m_cAcceleration = arrAccelerations[u];
+            m_arrParticles[u].m_cAcceleration = arrNewAccelerations[u];
         }
 
-        //ds deallocate the array
-        delete[] arrAccelerations;
+        //ds deallocate the temporary accelerations array
+        delete[] arrNewAccelerations;
     }
 
-    void saveParticlesToFile( const std::string& p_strFilename ) const
+    void saveParticlesToStream( )
     {
+        //ds stream syntax: (not implemented currently)
+        //X          Y          Z          U          V          W
+        //1.00000000 1.00000000 1.00000000 1.00000000 1.00000000 1.00000000
+        //12345678901234567890123456789012345678901234567890123456789012345 -> 65 characters
 
+        //ds for each particle
+        for( unsigned int u = 0; u < m_uNumberOfParticles; ++u )
+        {
+            //ds get a buffer for snprintf
+            char chBuffer[100];
+
+            //ds get the particle stream
+            std::snprintf( chBuffer, 100, "%f %f %f %f %f %f", m_arrParticles[u].m_cPosition( 0 ), m_arrParticles[u].m_cPosition( 1 ), m_arrParticles[u].m_cPosition( 2 ),
+                                                m_arrParticles[u].m_cVelocity( 0 ), m_arrParticles[u].m_cVelocity( 1 ), m_arrParticles[u].m_cVelocity( 2 ) );
+
+            //ds append the buffer to our string
+            m_strParticleInformation += chBuffer;
+            m_strParticleInformation += "\n";
+        }
+    }
+
+    void writeParticlesToFile( const std::string& p_strFilename, const double& p_dNumberOfTimeSteps )
+    {
+        //ds ofstream object
+        std::ofstream ofsFile;
+
+        //ds open the file for writing
+        ofsFile.open( p_strFilename.c_str( ), std::ofstream::out );
+
+        //ds if it worked
+        if( ofsFile.is_open( ) )
+        {
+            //ds first dump setup information number of particles and timesteps
+            ofsFile << m_uNumberOfParticles << " " << p_dNumberOfTimeSteps << "\n" << m_strParticleInformation;
+        }
+
+        //ds close the file
+        ofsFile.close( );
     }
 
 //ds accessors/helpers
@@ -267,14 +288,38 @@ private:
 
     const CVector getLennardJonesForce( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth )
     {
-        //ds get absolute value
-        const double dAbsoluteDistance( NBody::CVector::absoluteValue( p_CParticle2.m_cPosition-p_CParticle1.m_cPosition ) );
+        //ds cutoff distance
+        const double dDistanceCutoff( 2.5*p_dMinimumDistance );
 
-        //ds formula
-        return -24*p_dPotentialDepth*( 2*pow( p_dMinimumDistance/dAbsoluteDistance, 12 )
-                                        -pow( p_dMinimumDistance/dAbsoluteDistance, 6  ) )
-                                    *1/pow( dAbsoluteDistance, 2 )
-                                    *( p_CParticle2.m_cPosition-p_CParticle1.m_cPosition );
+        //ds force to calculate
+        CVector cForce;
+
+        //ds we have to loop over the cubic boundary conditions
+        for( double dX = m_pairBoundaries.first; dX < m_pairBoundaries.second+1; ++dX )
+        {
+            for( double dY = m_pairBoundaries.first; dY < m_pairBoundaries.second+1; ++dY )
+            {
+                for( double dZ = m_pairBoundaries.first; dZ < m_pairBoundaries.second+1; ++dZ )
+                {
+                    CVector cRadius( dX*m_dDomainSize + p_CParticle2.m_cPosition( 0 ) - p_CParticle1.m_cPosition( 0 ),
+                                     dY*m_dDomainSize + p_CParticle2.m_cPosition( 1 ) - p_CParticle1.m_cPosition( 1 ),
+                                     dZ*m_dDomainSize + p_CParticle2.m_cPosition( 2 ) - p_CParticle1.m_cPosition( 2 ) );
+
+                    //ds get the current distance between 2 and 1
+                    const double dDistanceAbsolute( NBody::CVector::absoluteValue( cRadius ) );
+
+                    //ds if we are within the cutoff range (only smaller here to avoid double overhead for >=)
+                    if( dDistanceCutoff > dDistanceAbsolute )
+                    {
+                        //ds add the force
+                        cForce += -24*p_dPotentialDepth*( 2*pow( p_dMinimumDistance/dDistanceAbsolute, 12 ) - pow( p_dMinimumDistance/dDistanceAbsolute, 6  ) )
+                                                       *1/pow( dDistanceAbsolute, 2 )*cRadius;
+                    }
+                }
+            }
+        }
+
+        return cForce;
     }
 
 };

@@ -1,7 +1,7 @@
-function [ ] = createVideoFromSimulationFile( p_strFilepath )
+function createVideoFromSimulationFile( )
 
 %ds open the file
-fileID = fopen( '/home/dominik/workspace/nbody_cpu/bin/simulation1.txt' );
+fileID = fopen( '../bin/simulation.txt' );
 
 %ds get the first line
 cCell = textscan( fileID, '%u %u', 1 );
