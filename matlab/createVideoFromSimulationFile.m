@@ -69,7 +69,7 @@ vecColor = [ matAbsoluteVelocity( :, 1 ), zeros( uNumberOfParticles, 1 ), 1-matA
 
 %ds create initial data with the first timestep
 scatter3( matX( :, 1 ), matY( :, 1 ), matZ( :, 1 ), 25, vecColor, 'fill', 'MarkerEdgeColor', 'black' );
-axis tight;
+axis( [ -1, 1, -1, 1, -1, 1 ] );
 set( gca, 'nextplot' ,'replacechildren' );
 set( gcf, 'Renderer' ,'zbuffer' );
 
@@ -84,7 +84,7 @@ for uCurrentTimestep = 2:1:uNumberOfTimesteps
     
         %ds create a figure
         scatter3( matX( :, uCurrentTimestep ), matY( :, uCurrentTimestep ), matZ( :, uCurrentTimestep ), 25, vecColor, 'fill', 'MarkerEdgeColor', 'black' );
-        frame = getframe;
+        frame = getframe( gcf );
         writeVideo( writerObj, frame );
     
     end

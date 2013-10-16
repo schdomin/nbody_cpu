@@ -1,5 +1,5 @@
-//ds domain structure
-#include "CCubicDomain.h"
+#include "CCubicDomain.h" //ds domain structure
+#include <iostream>       //ds cout
 
 
 
@@ -12,13 +12,11 @@ int main( int argc, char** argv )
     //ds allocate a domain to work with specifying number of particles and timing
     NBody::CCubicDomain cDomain( pairBoundaries, uNumberOfParticles );
 
-    //ds particle configuration
-    const double dParticleMass( 1.0 );
-    const double dNormalDistributionMean( 0.0 );
-    const double dNormalDistributionStandartDeviation( 1.0 );
+    //ds target kinetic energy
+    const double dTargetKineticEnergy( 1000.0 );
 
     //ds create particles uniformly from a normal distribution
-    cDomain.createParticlesUniformFromNormalDistribution( dParticleMass, dNormalDistributionMean, dNormalDistributionStandartDeviation );
+    cDomain.createParticlesUniformFromNormalDistribution( dTargetKineticEnergy );
 
     //ds current simulation configuration
     const double dTimeStepSize( 0.0001 );
@@ -34,8 +32,9 @@ int main( int argc, char** argv )
 
         //ds record situation (we will write the stream to the file in one operation)
         cDomain.saveParticlesToStream( );
+        cDomain.saveIntegralsToStream( dMinimumDistance, dPotentialDepth );
 
-        //ds dump first integrals
+        //ds dump progress information and first integrals
         std::cout << "------------------------------------------------------------" << std::endl;
         std::cout << "step: " << uCurrentTimeStep << std::endl;
         std::cout << "total energy: " << std::endl;
@@ -48,8 +47,9 @@ int main( int argc, char** argv )
         std::cout << cDomain.getLinearMomentum( ) << std::endl;
     }
 
-    //ds save the particle stream to a file
+    //ds save the streams to a file
     cDomain.writeParticlesToFile( "bin/simulation.txt", uNumberOfTimeSteps );
+    cDomain.writeIntegralsToFile( "bin/integrals.txt", uNumberOfTimeSteps, dTimeStepSize );
 
     std::cout << "------------------------------------------------------------" << std::endl;
 
