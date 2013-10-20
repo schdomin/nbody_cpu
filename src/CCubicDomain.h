@@ -60,18 +60,18 @@ public:
 //ds accessors/helpers
 public:
 
-    const double getTotalEnergy( const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const;
-    const CVector getCenterOfMass( ) const;
-    const CVector getAngularMomentum( ) const;
-    const CVector getLinearMomentum( ) const;
+    double getTotalEnergy( const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const;
+    CVector getCenterOfMass( ) const;
+    CVector getAngularMomentum( ) const;
+    CVector getLinearMomentum( ) const;
 
 //ds helpers
 private:
 
-    const double _getLennardJonesPotential( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const;
-    const CVector _getLennardJonesForce( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const;
-    const double _getUniformlyDistributedNumber( ) const;
-    const double _getNormallyDistributedNumber( ) const;
+    double _getLennardJonesPotential( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const;
+    CVector _getLennardJonesForce( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const;
+    double _getUniformlyDistributedNumber( ) const;
+    double _getNormallyDistributedNumber( ) const;
 
 };
 

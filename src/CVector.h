@@ -41,7 +41,7 @@ public:
     double& operator( )( const unsigned int& p_uIndex );
 
     //ds readonly indexing - ( ) is used instead of [ ] to mark the difference that this is not a "real" array
-    const double operator( )( const unsigned int& p_uIndex ) const;
+    double operator( )( const unsigned int& p_uIndex ) const;
 
     //ds setting
     void operator=( const CVector& p_cRightHandSide );

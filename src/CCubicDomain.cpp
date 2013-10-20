@@ -203,7 +203,7 @@ void CCubicDomain::writeIntegralsToFile( const std::string& p_strFilename, const
 }
 
 //ds accessors/helpers
-const double CCubicDomain::getTotalEnergy( const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const
+double CCubicDomain::getTotalEnergy( const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const
 {
     //ds total energy to accumulate
     double dTotalEnergy( 0.0 );
@@ -225,7 +225,7 @@ const double CCubicDomain::getTotalEnergy( const double& p_dMinimumDistance, con
     return dTotalEnergy;
 }
 
-const CVector CCubicDomain::getCenterOfMass( ) const
+CVector CCubicDomain::getCenterOfMass( ) const
 {
     //ds center to find
     CVector cCenter;
@@ -249,7 +249,7 @@ const CVector CCubicDomain::getCenterOfMass( ) const
     return cCenter;
 }
 
-const CVector CCubicDomain::getAngularMomentum( ) const
+CVector CCubicDomain::getAngularMomentum( ) const
 {
     //ds momentum
     CVector cMomentum;
@@ -264,7 +264,7 @@ const CVector CCubicDomain::getAngularMomentum( ) const
     return cMomentum;
 }
 
-const CVector CCubicDomain::getLinearMomentum( ) const
+CVector CCubicDomain::getLinearMomentum( ) const
 {
     //ds momentum
     CVector cMomentum;
@@ -280,14 +280,14 @@ const CVector CCubicDomain::getLinearMomentum( ) const
 }
 
 //ds helpers
-const double CCubicDomain::_getLennardJonesPotential( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const
+double CCubicDomain::_getLennardJonesPotential( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const
 {
     //ds formula
     return 4*p_dPotentialDepth*( pow( p_dMinimumDistance/NBody::CVector::absoluteValue( p_CParticle1.m_cPosition-p_CParticle2.m_cPosition ), 12 )
                                - pow( p_dMinimumDistance/NBody::CVector::absoluteValue( p_CParticle1.m_cPosition-p_CParticle2.m_cPosition ), 6 ) );
 }
 
-const CVector CCubicDomain::_getLennardJonesForce( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const
+CVector CCubicDomain::_getLennardJonesForce( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const
 {
     //ds cutoff distance
     const double dDistanceCutoff( 2.5*p_dMinimumDistance );
@@ -323,13 +323,13 @@ const CVector CCubicDomain::_getLennardJonesForce( const CParticle& p_CParticle1
     return cForce;
 }
 
-const double CCubicDomain::_getUniformlyDistributedNumber( ) const
+double CCubicDomain::_getUniformlyDistributedNumber( ) const
 {
     //ds drand48 returns [0,1], we need [-1,1] -> therefore 2x[0,1] -> [0,2] -> -1 ->[0-1,2-1] = [-1,1]
     return 2*drand48( )-1;
 }
 
-const double CCubicDomain::_getNormallyDistributedNumber( ) const
+double CCubicDomain::_getNormallyDistributedNumber( ) const
 {
     //ds calculate the uniform number first [0,1]
     const double dUniformNumber( drand48( ) );
