@@ -1,10 +1,14 @@
 #include "CCubicDomain.h" //ds domain structure
+#include "Timer.h"        //ds time measurement
 #include <iostream>       //ds cout
 
 
 
 int main( int argc, char** argv )
 {
+    //ds start timing
+    Timer tmTimer; tmTimer.start( );
+
     //ds domain configuration
     const std::pair< double, double > pairBoundaries( -1.0, 1.0 );
     const unsigned int uNumberOfParticles( 100 );
@@ -33,25 +37,21 @@ int main( int argc, char** argv )
         //ds record situation (we will write the stream to the file in one operation)
         cDomain.saveParticlesToStream( );
         cDomain.saveIntegralsToStream( dMinimumDistance, dPotentialDepth );
-
-        //ds dump progress information and first integrals
-        std::cout << "------------------------------------------------------------" << std::endl;
-        std::cout << "step: " << uCurrentTimeStep << std::endl;
-        std::cout << "total energy: " << std::endl;
-        std::cout << cDomain.getTotalEnergy( dMinimumDistance, dPotentialDepth ) << std::endl;
-        std::cout << "center of mass: " << std::endl;
-        std::cout << cDomain.getCenterOfMass( ) << std::endl;
-        std::cout << "angular momentum: " << std::endl;
-        std::cout << cDomain.getAngularMomentum( ) << std::endl;
-        std::cout << "linear momentum: " << std::endl;
-        std::cout << cDomain.getLinearMomentum( ) << std::endl;
     }
 
     //ds save the streams to a file
     cDomain.writeParticlesToFile( "bin/simulation.txt", uNumberOfTimeSteps );
     cDomain.writeIntegralsToFile( "bin/integrals.txt", uNumberOfTimeSteps, dTimeStepSize );
 
-    std::cout << "------------------------------------------------------------" << std::endl;
+    //ds stop timing
+    const double dDurationSeconds( tmTimer.stop( ) );
+
+    std::cout << "-------CPU SETUP------------------------------------------------------------" << std::endl;
+    std::cout << "  Number of particles: " << uNumberOfParticles << std::endl;
+    std::cout << "Target kinetic energy: " << dTargetKineticEnergy << std::endl;
+    std::cout << "  Number of timesteps: " << uNumberOfTimeSteps << std::endl;
+    std::cout << "     Computation time: " << dDurationSeconds << std::endl;
+    std::cout << "----------------------------------------------------------------------------" << std::endl;
 
     return 0;
 }
