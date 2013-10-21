@@ -150,14 +150,19 @@ void CCubicDomain::saveIntegralsToStream( const double& p_dMinimumDistance, cons
 {
     //ds format: E X Y Z X Y Z X Y Z
 
+    //ds get information - caution, memory gets allocated
+    NBody::CVector vecCenterOfMass    ( getCenterOfMass( ) );
+    NBody::CVector vecAngularMomentum ( getAngularMomentum( ) );
+    NBody::CVector vecLinearMomentum  ( getLinearMomentum( ) );
+
     //ds buffer for snprintf
     char chBuffer[256];
 
     //ds get the integrals stream
     std::snprintf( chBuffer, 100, "%f %f %f %f %f %f %f %f %f %f", getTotalEnergy( p_dMinimumDistance, p_dPotentialDepth ),
-                                                                   getCenterOfMass( )( 0 ), getCenterOfMass( )( 1 ), getCenterOfMass( )( 2 ),
-                                                                   getAngularMomentum( )( 0 ), getAngularMomentum( )( 1 ), getAngularMomentum( )( 2 ),
-                                                                   getLinearMomentum( )( 0 ), getLinearMomentum( )( 1 ), getLinearMomentum( )( 2 ) );
+                                                                   vecCenterOfMass( 0 ), vecCenterOfMass( 1 ), vecCenterOfMass( 2 ),
+                                                                   vecAngularMomentum( 0 ), vecAngularMomentum( 1 ), vecAngularMomentum( 2 ),
+                                                                   vecLinearMomentum( 0 ), vecLinearMomentum( 1 ), vecLinearMomentum( 2 ) );
 
     //ds append the buffer to our string
     m_strIntegralsInformation += chBuffer;
