@@ -10,7 +10,7 @@ namespace NBody
 CCubicDomain::CCubicDomain( const std::pair< double, double >& p_pairBoundaries,
                             const unsigned int& p_uNumberOfParticles ): m_arrParticles( 0 ),
                                                                         m_pairBoundaries( p_pairBoundaries ),
-                                                                        m_dDomainSize( labs( m_pairBoundaries.first ) + labs( m_pairBoundaries.second ) ),
+                                                                        m_dDomainSize( fabs( m_pairBoundaries.first ) + fabs( m_pairBoundaries.second ) ),
                                                                         m_uNumberOfParticles( p_uNumberOfParticles ),
                                                                         m_strParticleInformation( "" ),
                                                                         m_strIntegralsInformation( "" )
