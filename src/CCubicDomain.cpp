@@ -151,15 +151,15 @@ void CCubicDomain::saveIntegralsToStream( const double& p_dMinimumDistance, cons
     //ds format: E X Y Z X Y Z X Y Z
 
     //ds get information - caution, memory gets allocated
-    NBody::CVector vecCenterOfMass    ( getCenterOfMass( ) );
-    NBody::CVector vecAngularMomentum ( getAngularMomentum( ) );
-    NBody::CVector vecLinearMomentum  ( getLinearMomentum( ) );
+    const NBody::CVector vecCenterOfMass    ( getCenterOfMass( ) );
+    const NBody::CVector vecAngularMomentum ( getAngularMomentum( ) );
+    const NBody::CVector vecLinearMomentum  ( getLinearMomentum( ) );
 
     //ds buffer for snprintf
     char chBuffer[256];
 
     //ds get the integrals stream
-    std::snprintf( chBuffer, 100, "%f %f %f %f %f %f %f %f %f %f", getTotalEnergy( p_dMinimumDistance, p_dPotentialDepth ),
+    std::snprintf( chBuffer, 256, "%f %f %f %f %f %f %f %f %f %f", getTotalEnergy( p_dMinimumDistance, p_dPotentialDepth ),
                                                                    vecCenterOfMass( 0 ), vecCenterOfMass( 1 ), vecCenterOfMass( 2 ),
                                                                    vecAngularMomentum( 0 ), vecAngularMomentum( 1 ), vecAngularMomentum( 2 ),
                                                                    vecLinearMomentum( 0 ), vecLinearMomentum( 1 ), vecLinearMomentum( 2 ) );
@@ -216,11 +216,12 @@ double CCubicDomain::getTotalEnergy( const double& p_dMinimumDistance, const dou
     //ds for each particle
     for( unsigned int u = 0; u < m_uNumberOfParticles; ++u )
     {
+        //ds add the kinetic component
+        dTotalEnergy += m_arrParticles[u].m_dMass/2*pow( NBody::CVector::absoluteValue( m_arrParticles[u].m_cVelocity ), 2 );
+
         //ds loop over all other particles (dont do the same particles twice)
         for( unsigned int v = u+1; v < m_uNumberOfParticles; ++v )
         {
-            //ds add the kinetic component
-            dTotalEnergy += m_arrParticles[u].m_dMass/2*pow( NBody::CVector::absoluteValue( m_arrParticles[u].m_cVelocity ), 2 );
 
             //ds add the potential component
             dTotalEnergy += _getLennardJonesPotential( m_arrParticles[u], m_arrParticles[v], p_dMinimumDistance, p_dPotentialDepth );

@@ -55,7 +55,7 @@ int main( int argc, char** argv )
         //ds update particles
         cDomain.updateParticlesVelocityVerlet( dTimeStepSize, dMinimumDistance, dPotentialDepth );
 
-        //ds record situation (we will write the stream to the file in one operation)
+        //ds record situation (we will write the stream to the file in one operation afterwards )
         cDomain.saveParticlesToStream( );
         cDomain.saveIntegralsToStream( dMinimumDistance, dPotentialDepth );
     }
