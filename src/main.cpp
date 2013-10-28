@@ -17,16 +17,16 @@ int main( int argc, char** argv )
     NBody::CCubicDomain cDomain( pairBoundaries, uNumberOfParticles );
 
     //ds target kinetic energy
-    const double dTargetKineticEnergy( 1000.0 );
+    const double dTargetKineticEnergy( 100.0 );
 
     //ds create particles uniformly from a normal distribution
     cDomain.createParticlesUniformFromNormalDistribution( dTargetKineticEnergy );
 
     //ds current simulation configuration
     const double dTimeStepSize( 0.0001 );
-    const unsigned int uNumberOfTimeSteps( 5000 );
-    const double dMinimumDistance( 0.05 );
-    const double dPotentialDepth( 0.01 );
+    const unsigned int uNumberOfTimeSteps( 100 );
+    const double dMinimumDistance( pow( 1.0/uNumberOfParticles, 1.0/3 ) );
+    const double dPotentialDepth( 1 );
 
     std::cout << "--------CPU SETUP------------------------------------------------------------" << std::endl;
     std::cout << "  Number of particles: " << uNumberOfParticles << std::endl;

@@ -288,9 +288,38 @@ CVector CCubicDomain::getLinearMomentum( ) const
 //ds helpers
 double CCubicDomain::_getLennardJonesPotential( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const
 {
-    //ds formula
-    return 4*p_dPotentialDepth*( pow( p_dMinimumDistance/NBody::CVector::absoluteValue( p_CParticle1.m_cPosition-p_CParticle2.m_cPosition ), 12 )
-                               - pow( p_dMinimumDistance/NBody::CVector::absoluteValue( p_CParticle1.m_cPosition-p_CParticle2.m_cPosition ), 6 ) );
+    //ds cutoff distance
+    const double dDistanceCutoff( 2.5*p_dMinimumDistance );
+
+    //ds potential to calculate
+    double dPotential( 0.0 );
+
+    //ds we have to loop over the cubic boundary conditions
+    for( double dX = m_pairBoundaries.first; dX < m_pairBoundaries.second+1; ++dX )
+    {
+        for( double dY = m_pairBoundaries.first; dY < m_pairBoundaries.second+1; ++dY )
+        {
+            for( double dZ = m_pairBoundaries.first; dZ < m_pairBoundaries.second+1; ++dZ )
+            {
+                CVector cRadius( dX*m_dDomainSize + p_CParticle2.m_cPosition( 0 ) - p_CParticle1.m_cPosition( 0 ),
+                                 dY*m_dDomainSize + p_CParticle2.m_cPosition( 1 ) - p_CParticle1.m_cPosition( 1 ),
+                                 dZ*m_dDomainSize + p_CParticle2.m_cPosition( 2 ) - p_CParticle1.m_cPosition( 2 ) );
+
+                //ds get the current distance between 2 and 1
+                const double dDistanceAbsolute( NBody::CVector::absoluteValue( cRadius ) );
+
+                //ds if we are within the cutoff range (only smaller here to avoid double overhead for >=)
+                if( dDistanceCutoff > dDistanceAbsolute )
+                {
+                    //ds add the potential
+                    dPotential += 4*p_dPotentialDepth*( pow( p_dMinimumDistance/NBody::CVector::absoluteValue( p_CParticle1.m_cPosition-p_CParticle2.m_cPosition ), 12 )
+                                                      - pow( p_dMinimumDistance/NBody::CVector::absoluteValue( p_CParticle1.m_cPosition-p_CParticle2.m_cPosition ), 6 ) );
+                }
+            }
+        }
+    }
+
+    return dPotential;
 }
 
 CVector CCubicDomain::_getLennardJonesForce( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const
