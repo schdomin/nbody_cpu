@@ -24,9 +24,15 @@ int main( int argc, char** argv )
 
     //ds current simulation configuration
     const double dTimeStepSize( 0.0001 );
+<<<<<<< HEAD
     const unsigned int uNumberOfTimeSteps( 100 );
     const double dMinimumDistance( pow( 1.0/uNumberOfParticles, 1.0/3 ) );
     const double dPotentialDepth( 1 );
+=======
+    const unsigned int uNumberOfTimeSteps( 5000 );
+    const double dMinimumDistance( 5/uNumberOfParticles ); //pow( 1.0/uNumberOfParticles, 1.0/3 ) ); <- causes massive accelerations
+    const double dPotentialDepth( 0.01 );
+>>>>>>> 398a36080e1dae428d0b0e2b2ca3d1cde1e13a9e
 
     std::cout << "--------CPU SETUP------------------------------------------------------------" << std::endl;
     std::cout << "  Number of particles: " << uNumberOfParticles << std::endl;
