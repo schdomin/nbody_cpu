@@ -95,7 +95,7 @@ void CCubicDomain::updateParticlesVelocityVerlet( const double& p_dTimeStep, con
     for( unsigned int u = 0; u < m_uNumberOfParticles; ++u )
     {
         //ds velocity-verlet for position
-        m_arrParticles[u].m_cPosition = m_arrParticles[u].m_cPosition + p_dTimeStep*m_arrParticles[u].m_cVelocity + 1/2*pow( p_dTimeStep, 2 )*m_arrParticles[u].m_cAcceleration;
+        m_arrParticles[u].m_cPosition = m_arrParticles[u].m_cPosition + p_dTimeStep*m_arrParticles[u].m_cVelocity + 1.0/2*pow( p_dTimeStep, 2 )*m_arrParticles[u].m_cAcceleration;
 
         //ds produce periodic boundary shifting - check each element: x,y,z
         for( unsigned int v = 0; v < 3; ++v )
@@ -151,18 +151,19 @@ void CCubicDomain::saveIntegralsToStream( const double& p_dMinimumDistance, cons
     //ds format: E X Y Z X Y Z X Y Z
 
     //ds get information - caution, memory gets allocated
-    const NBody::CVector vecCenterOfMass    ( getCenterOfMass( ) );
-    const NBody::CVector vecAngularMomentum ( getAngularMomentum( ) );
-    const NBody::CVector vecLinearMomentum  ( getLinearMomentum( ) );
+    const double dTotalEnergy( _getTotalEnergy( p_dMinimumDistance, p_dPotentialDepth ) );
+    const NBody::CVector vecCenterOfMass    ( _getCenterOfMass( ) );
+    const NBody::CVector vecAngularMomentum ( _getAngularMomentum( ) );
+    const NBody::CVector vecLinearMomentum  ( _getLinearMomentum( ) );
 
     //ds buffer for snprintf
     char chBuffer[256];
 
     //ds get the integrals stream
-    std::snprintf( chBuffer, 256, "%f %f %f %f %f %f %f %f %f %f", getTotalEnergy( p_dMinimumDistance, p_dPotentialDepth ),
-                                                                   vecCenterOfMass( 0 ), vecCenterOfMass( 1 ), vecCenterOfMass( 2 ),
-                                                                   vecAngularMomentum( 0 ), vecAngularMomentum( 1 ), vecAngularMomentum( 2 ),
-                                                                   vecLinearMomentum( 0 ), vecLinearMomentum( 1 ), vecLinearMomentum( 2 ) );
+    std::snprintf( chBuffer, 256, "%f %f %f %f %f %f %f %f %f %f", dTotalEnergy,
+                                                                   vecCenterOfMass[0]   , vecCenterOfMass[1]   , vecCenterOfMass[2],
+                                                                   vecAngularMomentum[0], vecAngularMomentum[1], vecAngularMomentum[2],
+                                                                   vecLinearMomentum[0] , vecLinearMomentum[1] , vecLinearMomentum[2] );
 
     //ds append the buffer to our string
     m_strIntegralsInformation += chBuffer;
@@ -208,7 +209,7 @@ void CCubicDomain::writeIntegralsToFile( const std::string& p_strFilename, const
 }
 
 //ds accessors/helpers
-double CCubicDomain::getTotalEnergy( const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const
+double CCubicDomain::_getTotalEnergy( const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const
 {
     //ds total energy to accumulate
     double dTotalEnergy( 0.0 );
@@ -222,7 +223,6 @@ double CCubicDomain::getTotalEnergy( const double& p_dMinimumDistance, const dou
         //ds loop over all other particles (dont do the same particles twice)
         for( unsigned int v = u+1; v < m_uNumberOfParticles; ++v )
         {
-
             //ds add the potential component
             dTotalEnergy += _getLennardJonesPotential( m_arrParticles[u], m_arrParticles[v], p_dMinimumDistance, p_dPotentialDepth );
         }
@@ -231,7 +231,7 @@ double CCubicDomain::getTotalEnergy( const double& p_dMinimumDistance, const dou
     return dTotalEnergy;
 }
 
-CVector CCubicDomain::getCenterOfMass( ) const
+CVector CCubicDomain::_getCenterOfMass( ) const
 {
     //ds center to find
     CVector cCenter;
@@ -255,7 +255,7 @@ CVector CCubicDomain::getCenterOfMass( ) const
     return cCenter;
 }
 
-CVector CCubicDomain::getAngularMomentum( ) const
+CVector CCubicDomain::_getAngularMomentum( ) const
 {
     //ds momentum
     CVector cMomentum;
@@ -270,7 +270,7 @@ CVector CCubicDomain::getAngularMomentum( ) const
     return cMomentum;
 }
 
-CVector CCubicDomain::getLinearMomentum( ) const
+CVector CCubicDomain::_getLinearMomentum( ) const
 {
     //ds momentum
     CVector cMomentum;
@@ -291,32 +291,23 @@ double CCubicDomain::_getLennardJonesPotential( const CParticle& p_CParticle1,  
     //ds cutoff distance
     const double dDistanceCutoff( 2.5*p_dMinimumDistance );
 
-    //ds potential to calculate
+    //ds potential to calculate - default 0
     double dPotential( 0.0 );
 
-    //ds we have to loop over the cubic boundary conditions
-    for( double dX = m_pairBoundaries.first; dX < m_pairBoundaries.second+1; ++dX )
+    //ds get the distance between the particles
+    const CVector cRadius( p_CParticle2.m_cPosition[0] - p_CParticle1.m_cPosition[0],
+                           p_CParticle2.m_cPosition[1] - p_CParticle1.m_cPosition[1],
+                           p_CParticle2.m_cPosition[2] - p_CParticle1.m_cPosition[2] );
+
+    //ds get the current distance between 2 and 1
+    const double dDistanceAbsolute( NBody::CVector::absoluteValue( cRadius ) );
+
+    //ds if we are between the minimum distance and the cutoff range
+    if( p_dMinimumDistance < dDistanceAbsolute && dDistanceCutoff > dDistanceAbsolute )
     {
-        for( double dY = m_pairBoundaries.first; dY < m_pairBoundaries.second+1; ++dY )
-        {
-            for( double dZ = m_pairBoundaries.first; dZ < m_pairBoundaries.second+1; ++dZ )
-            {
-                CVector cRadius( dX*m_dDomainSize + p_CParticle2.m_cPosition( 0 ) - p_CParticle1.m_cPosition( 0 ),
-                                 dY*m_dDomainSize + p_CParticle2.m_cPosition( 1 ) - p_CParticle1.m_cPosition( 1 ),
-                                 dZ*m_dDomainSize + p_CParticle2.m_cPosition( 2 ) - p_CParticle1.m_cPosition( 2 ) );
-
-                //ds get the current distance between 2 and 1
-                const double dDistanceAbsolute( NBody::CVector::absoluteValue( cRadius ) );
-
-                //ds if we are within the cutoff range (only smaller here to avoid double overhead for >=)
-                if( dDistanceCutoff > dDistanceAbsolute )
-                {
-                    //ds add the potential
-                    dPotential += 4*p_dPotentialDepth*( pow( p_dMinimumDistance/NBody::CVector::absoluteValue( p_CParticle1.m_cPosition-p_CParticle2.m_cPosition ), 12 )
-                                                      - pow( p_dMinimumDistance/NBody::CVector::absoluteValue( p_CParticle1.m_cPosition-p_CParticle2.m_cPosition ), 6 ) );
-                }
-            }
-        }
+        //ds add the potential
+        dPotential = 4*p_dPotentialDepth*( pow( p_dMinimumDistance/dDistanceAbsolute, 12 )
+                                         - pow( p_dMinimumDistance/dDistanceAbsolute, 6 ) );
     }
 
     return dPotential;
@@ -331,21 +322,21 @@ CVector CCubicDomain::_getLennardJonesForce( const CParticle& p_CParticle1,  con
     CVector cForce;
 
     //ds we have to loop over the cubic boundary conditions
-    for( double dX = m_pairBoundaries.first; dX < m_pairBoundaries.second+1; ++dX )
+    for( double dX = m_pairBoundaries.first; dX < m_pairBoundaries.second+1.0; ++dX )
     {
-        for( double dY = m_pairBoundaries.first; dY < m_pairBoundaries.second+1; ++dY )
+        for( double dY = m_pairBoundaries.first; dY < m_pairBoundaries.second+1.0; ++dY )
         {
-            for( double dZ = m_pairBoundaries.first; dZ < m_pairBoundaries.second+1; ++dZ )
+            for( double dZ = m_pairBoundaries.first; dZ < m_pairBoundaries.second+1.0; ++dZ )
             {
-                CVector cRadius( dX*m_dDomainSize + p_CParticle2.m_cPosition( 0 ) - p_CParticle1.m_cPosition( 0 ),
-                                 dY*m_dDomainSize + p_CParticle2.m_cPosition( 1 ) - p_CParticle1.m_cPosition( 1 ),
-                                 dZ*m_dDomainSize + p_CParticle2.m_cPosition( 2 ) - p_CParticle1.m_cPosition( 2 ) );
+                CVector cRadius( dX*m_dDomainSize + p_CParticle2.m_cPosition[0] - p_CParticle1.m_cPosition[0],
+                                 dY*m_dDomainSize + p_CParticle2.m_cPosition[1] - p_CParticle1.m_cPosition[1],
+                                 dZ*m_dDomainSize + p_CParticle2.m_cPosition[2] - p_CParticle1.m_cPosition[2] );
 
                 //ds get the current distance between 2 and 1
                 const double dDistanceAbsolute( NBody::CVector::absoluteValue( cRadius ) );
 
                 //ds if we are within the cutoff range (only smaller here to avoid double overhead for >=)
-                if( dDistanceCutoff > dDistanceAbsolute )
+                if( p_dMinimumDistance < dDistanceAbsolute && dDistanceCutoff > dDistanceAbsolute )
                 {
                     //ds add the force
                     cForce += -24*p_dPotentialDepth*( 2*pow( p_dMinimumDistance/dDistanceAbsolute, 12 ) - pow( p_dMinimumDistance/dDistanceAbsolute, 6  ) )

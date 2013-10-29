@@ -29,7 +29,7 @@ CVector::~CVector( )
 }
 
 //ds operators
-//ds r/w indexing - ( ) is used instead of [ ] to mark the difference that this is not a "real" array - CAREFUL this allows manipulation of the data
+//ds r/w indexing - ( ) is used - CAREFUL this allows manipulation of the data
 double& CVector::operator( )( const unsigned int& p_uIndex )
 {
     //ds map the index operator to the element
@@ -45,8 +45,8 @@ double& CVector::operator( )( const unsigned int& p_uIndex )
     }
 }
 
-//ds readonly indexing - ( ) is used instead of [ ] to mark the difference that this is not a "real" array
-double CVector::operator( )( const unsigned int& p_uIndex ) const
+//ds readonly indexing
+double CVector::operator[ ]( const unsigned int& p_uIndex ) const
 {
     //ds map the index operator to the element
     if     ( 0 == p_uIndex ){ return m_dElement0; }

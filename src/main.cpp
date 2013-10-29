@@ -6,44 +6,54 @@
 
 int main( int argc, char** argv )
 {
+    //ds check simple input arguments - CAUTION: the implementation expects real numbers, the simulation will be corrupted if invalid values are entered
+    if( 4 != argc )
+    {
+        //ds inform
+        std::cout << "usage: nbody_cpu [Number of particles] [Number of time steps] [Target energy]" << std::endl;
+        return 0;
+    }
+
     //ds start timing
     Timer tmTimer; tmTimer.start( );
 
     //ds domain configuration
     const std::pair< double, double > pairBoundaries( -1.0, 1.0 );
-    const unsigned int uNumberOfParticles( 100 );
+    const double dDomainWidth( fabs( pairBoundaries.first ) + fabs( pairBoundaries.second ) );
+    const unsigned int uNumberOfParticles( atoi( argv[1] ) );
+
+    //ds current simulation configuration
+    const double dTimeStepSize( 0.0001 );
+    const unsigned int uNumberOfTimeSteps( atoi( argv[2] ) );
+    const double dMinimumDistance( pow( 1.0/uNumberOfParticles, 1.0/3 ) );
+    const double dPotentialDepth( 1.0 );
+
+    //ds target kinetic energy
+    const double dTargetKineticEnergy( atol( argv[3] ) );
+
+    std::cout << "------- CPU SETUP -----------------------------------------------------------" << std::endl;
+    std::cout << "  Number of particles: " << uNumberOfParticles << std::endl;
+    std::cout << "        Boundary (3D): [" << pairBoundaries.first << ", " << pairBoundaries.second << "]" << std::endl;
+    std::cout << "         Domain Width: " << dDomainWidth << std::endl;
+    std::cout << "     Minimum distance: " << dMinimumDistance << std::endl;
+    std::cout << "      Cutoff distance: " << 2.5*dMinimumDistance << std::endl;
+    std::cout << "      Potential depth: " << dPotentialDepth << std::endl;
+    std::cout << "Target kinetic energy: " << dTargetKineticEnergy << std::endl;
+    std::cout << " Number of time steps: " << uNumberOfTimeSteps << std::endl;
+    std::cout << "       Time step size: " << dTimeStepSize << std::endl;
+    std::cout << "-----------------------------------------------------------------------------" << std::endl;
 
     //ds allocate a domain to work with specifying number of particles and timing
     NBody::CCubicDomain cDomain( pairBoundaries, uNumberOfParticles );
 
-    //ds target kinetic energy
-    const double dTargetKineticEnergy( 100.0 );
-
     //ds create particles uniformly from a normal distribution
     cDomain.createParticlesUniformFromNormalDistribution( dTargetKineticEnergy );
-
-    //ds current simulation configuration
-    const double dTimeStepSize( 0.0001 );
-<<<<<<< HEAD
-    const unsigned int uNumberOfTimeSteps( 100 );
-    const double dMinimumDistance( pow( 1.0/uNumberOfParticles, 1.0/3 ) );
-    const double dPotentialDepth( 1 );
-=======
-    const unsigned int uNumberOfTimeSteps( 5000 );
-    const double dMinimumDistance( 5/uNumberOfParticles ); //pow( 1.0/uNumberOfParticles, 1.0/3 ) ); <- causes massive accelerations
-    const double dPotentialDepth( 0.01 );
->>>>>>> 398a36080e1dae428d0b0e2b2ca3d1cde1e13a9e
-
-    std::cout << "--------CPU SETUP------------------------------------------------------------" << std::endl;
-    std::cout << "  Number of particles: " << uNumberOfParticles << std::endl;
-    std::cout << "Target kinetic energy: " << dTargetKineticEnergy << std::endl;
-    std::cout << "  Number of timesteps: " << uNumberOfTimeSteps << std::endl;
 
     //ds information
     std::cout << "               Status:  0% done - current step: 0";
 
     //ds start simulation
-    for( unsigned int uCurrentTimeStep = 0; uCurrentTimeStep < uNumberOfTimeSteps; ++uCurrentTimeStep )
+    for( unsigned int uCurrentTimeStep = 1; uCurrentTimeStep < uNumberOfTimeSteps+1; ++uCurrentTimeStep )
     {
         //ds calculate percentage done
         const double dPercentageDone( 100.0*uCurrentTimeStep/uNumberOfTimeSteps );

@@ -57,17 +57,13 @@ public:
     void writeParticlesToFile( const std::string& p_strFilename, const unsigned int& p_uNumberOfTimeSteps );
     void writeIntegralsToFile( const std::string& p_strFilename, const unsigned int& p_uNumberOfTimeSteps, const double& p_dTimeStepSize );
 
-//ds accessors/helpers
-public:
-
-    double getTotalEnergy( const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const;
-    CVector getCenterOfMass( ) const;
-    CVector getAngularMomentum( ) const;
-    CVector getLinearMomentum( ) const;
-
 //ds helpers
 private:
 
+    double _getTotalEnergy( const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const;
+    CVector _getCenterOfMass( ) const;
+    CVector _getAngularMomentum( ) const;
+    CVector _getLinearMomentum( ) const;
     double _getLennardJonesPotential( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const;
     CVector _getLennardJonesForce( const CParticle& p_CParticle1,  const CParticle& p_CParticle2, const double& p_dMinimumDistance, const double& p_dPotentialDepth ) const;
     double _getUniformlyDistributedNumber( ) const;
